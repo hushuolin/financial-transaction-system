@@ -34,3 +34,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  redis:
+    host: redis_ledger  # ✅ Match Docker Compose service name
+    port: 6379
+    timeout: 60000  # 60 seconds timeout
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: 1000ms
+

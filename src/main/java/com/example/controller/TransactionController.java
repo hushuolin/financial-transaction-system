@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.model.Transaction;
+import com.example.service.RedisLedgerService;
 import com.example.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TransactionController {
     private final TransactionService transactionService;
+    private final RedisLedgerService redisLedgerService;
 
     @PostMapping
     public ResponseEntity<?> createTransaction(@RequestParam String accountId, 
@@ -30,5 +32,11 @@ public class TransactionController {
     public ResponseEntity<?> getTransaction(@PathVariable Long id) {
         Optional<Transaction> transaction = transactionService.getTransactionById(id);
         return transaction.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/balance/{accountId}")
+    public ResponseEntity<Double> getBalance(@PathVariable String accountId) {
+        double balance = redisLedgerService.getBalance(accountId);
+        return ResponseEntity.ok(balance);
     }
 }

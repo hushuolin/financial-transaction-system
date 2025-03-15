@@ -14,6 +14,7 @@ import java.util.UUID;
 public class TransactionService {
     private final KafkaTemplate<String, Transaction> kafkaTemplate;
     private final TransactionRepository transactionRepository;
+    private final RedisLedgerService redisLedgerService;  // ✅ Inject Redis service
     private static final String TRANSACTION_TOPIC = "transactions";
 
     public Transaction processTransaction(String accountId, double amount, String type) {
@@ -21,11 +22,15 @@ public class TransactionService {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
 
-        // ✅ Store transaction in PostgreSQL
+        // Store transaction in PostgreSQL
         Transaction transaction = new Transaction(null, UUID.randomUUID().toString(), accountId, amount, type, false);
         transactionRepository.save(transaction);
 
-        // ✅ Send transaction to Kafka (Kafka Streams will process this)
+        // ✅ Update Redis balance
+        double signedAmount = type.equalsIgnoreCase("withdrawal") ? -amount : amount;
+        redisLedgerService.updateBalance(accountId, signedAmount);
+
+        // ✅ Send transaction to Kafka
         kafkaTemplate.send(TRANSACTION_TOPIC, transaction);
         
         return transaction;
