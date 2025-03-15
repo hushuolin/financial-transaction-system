@@ -1,9 +1,11 @@
 spring:
   kafka:
     bootstrap-servers: localhost:9092
+
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
     consumer:
       group-id: fraud-detection-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -13,13 +15,22 @@ spring:
       auto-offset-reset: earliest
       enable-auto-commit: false
 
+    streams:
+      bootstrap-servers: localhost:9092  # ✅ Ensure Kafka Streams knows where to connect
+      application-id: transaction-risk-assessment  # Unique ID for Kafka Streams
+      state-dir: /tmp/kafka-streams  # Directory for local state storage
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        commit.interval.ms: 1000  # Kafka Streams commit interval
+
   datasource:
     url: jdbc:postgresql://localhost:5432/transactions_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-

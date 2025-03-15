@@ -67,6 +67,13 @@
 			<groupId>org.postgresql</groupId>
     		<artifactId>postgresql</artifactId>
 		</dependency>
+
+		<!-- Kafka Streams Dependency -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-streams</artifactId>
+			<version>3.5.0</version>
+		</dependency>
 		
     </dependencies>
 

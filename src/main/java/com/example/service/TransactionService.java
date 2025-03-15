@@ -21,11 +21,11 @@ public class TransactionService {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
 
-        // Store transaction in PostgreSQL
+        // ✅ Store transaction in PostgreSQL
         Transaction transaction = new Transaction(null, UUID.randomUUID().toString(), accountId, amount, type, false);
         transactionRepository.save(transaction);
 
-        // Send transaction to Kafka for real-time processing
+        // ✅ Send transaction to Kafka (Kafka Streams will process this)
         kafkaTemplate.send(TRANSACTION_TOPIC, transaction);
         
         return transaction;
