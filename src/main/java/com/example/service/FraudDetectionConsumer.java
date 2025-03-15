@@ -4,30 +4,44 @@ import com.example.model.Transaction;
 import com.example.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FraudDetectionConsumer {
     private final TransactionRepository transactionRepository;
+    private final KafkaTemplate<String, Transaction> kafkaTemplate;
+    private static final double FRAUD_THRESHOLD = 5000.0;
+    private static final String TRANSACTION_TOPIC = "transactions";
+    private static final String FRAUD_ALERT_TOPIC = "risk-alerts";
 
     @KafkaListener(topics = "transactions", groupId = "fraud-detection-group")
-    public void consumeTransaction(ConsumerRecord<String, Transaction> record) {
-        Transaction transaction = record.value();
-        log.info("Processing Transaction from Kafka: {}", transaction);
+    public void consumeTransaction(Transaction transaction) {
+        log.info("✅ Transaction consumed: {}", transaction);
 
-        // ✅ Remove duplicate fraud detection logic (Kafka Streams handles it now)
-        transactionRepository.save(transaction);  // Still store all transactions
-
-        log.info("✅ Transaction processed: {}", transaction);
+        // Check for fraud
+        if (transaction.getAmount() > FRAUD_THRESHOLD) {
+            log.warn("🚨 Fraud detected: {}", transaction);
+            markAsFraudulent(transaction);
+        }
     }
 
-    @KafkaListener(topics = "risk-alerts", groupId = "fraud-detection-group")
-    public void handleRiskAlerts(Transaction transaction) {
-        log.warn("🚨 High-Risk Transaction Detected: {}", transaction);
-        // ✅ Here, you can extend this later (e.g., notify fraud teams)
+    private void markAsFraudulent(Transaction transaction) {
+        Optional<Transaction> existingTransaction = transactionRepository.findByTransactionId(transaction.getTransactionId());
+
+        if (existingTransaction.isPresent() && !existingTransaction.get().isFraudulent()) {
+            Transaction fraudTransaction = existingTransaction.get();
+            fraudTransaction.setFraudulent(true);
+            transactionRepository.save(fraudTransaction); // Update fraud status in DB
+
+            // Publish updated transaction to transaction and risk-alerts Kafka topic
+            kafkaTemplate.send(TRANSACTION_TOPIC, fraudTransaction);
+            kafkaTemplate.send(FRAUD_ALERT_TOPIC, fraudTransaction);
+            log.warn("🚀 Fraud status updated in DB & sent to Kafka: {}", fraudTransaction);
+        }
     }
 }

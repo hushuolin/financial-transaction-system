@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisLedgerService {
     private final StringRedisTemplate redisTemplate;
-
     private static final String BALANCE_PREFIX = "balance:";
 
     public void updateBalance(String accountId, double amount) {
