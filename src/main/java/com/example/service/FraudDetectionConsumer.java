@@ -16,7 +16,6 @@ public class FraudDetectionConsumer {
     private final TransactionRepository transactionRepository;
     private final KafkaTemplate<String, Transaction> kafkaTemplate;
     private static final double FRAUD_THRESHOLD = 5000.0;
-    private static final String TRANSACTION_TOPIC = "transactions";
     private static final String FRAUD_ALERT_TOPIC = "risk-alerts";
 
     @KafkaListener(topics = "transactions", groupId = "fraud-detection-group")
@@ -38,8 +37,7 @@ public class FraudDetectionConsumer {
             fraudTransaction.setFraudulent(true);
             transactionRepository.save(fraudTransaction); // Update fraud status in DB
 
-            // Publish updated transaction to transaction and risk-alerts Kafka topic
-            kafkaTemplate.send(TRANSACTION_TOPIC, fraudTransaction);
+            // Publish fraud transaction to risk-alerts Kafka topic
             kafkaTemplate.send(FRAUD_ALERT_TOPIC, fraudTransaction);
             log.warn("🚀 Fraud status updated in DB & sent to Kafka: {}", fraudTransaction);
         }
