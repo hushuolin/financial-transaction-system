@@ -37,7 +37,7 @@ public class FraudDetectionConsumer {
             fraudTransaction.setFraudulent(true);
             transactionRepository.save(fraudTransaction); // Update fraud status in DB
 
-            // Publish fraud transaction to risk-alerts Kafka topic
+            // Publish fraud transaction to fraud-alerts Kafka topic
             kafkaTemplate.send(FRAUD_ALERT_TOPIC, fraudTransaction);
             log.warn("🚀 Fraud status updated in DB & sent to Kafka: {}", fraudTransaction);
         }
