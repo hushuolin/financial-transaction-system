@@ -16,7 +16,7 @@ public class FraudDetectionConsumer {
     private final TransactionRepository transactionRepository;
     private final KafkaTemplate<String, Transaction> kafkaTemplate;
     private static final double FRAUD_THRESHOLD = 5000.0;
-    private static final String FRAUD_ALERT_TOPIC = "risk-alerts";
+    private static final String FRAUD_ALERT_TOPIC = "fraud-alerts";
 
     @KafkaListener(topics = "transactions", groupId = "fraud-detection-group")
     public void consumeTransaction(Transaction transaction) {
